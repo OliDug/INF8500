@@ -4,6 +4,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 #include "Bubble.h"
+#include <iostream>
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -14,7 +15,13 @@
 Bubble::Bubble( sc_module_name zName )
 : sc_module(zName)
 {
+	/*
+	
+	À compléter
+	
+	*/
 	SC_METHOD(bubble);
+	this->State = INIT;
 	sensitive << clk.pos();
 }
 
@@ -36,80 +43,83 @@ Bubble::~Bubble()
 ///////////////////////////////////////////////////////////////////////////////
 void Bubble::bubble(void)
 {
-	switch(state) {
-		case INIT:
-			address->write(0);
-			request->write(false);
-			state = SEND_REQUEST;
+	/*
+	
+	À compléter
+	
+	*/
+	//Tiré de https://www.geeksforgeeks.org/bubble-sort/
+	switch(this->State) {
+		case INIT: //Initialisation
+			this->address->write(0);
+			this->request->write(false);
+			State = SEND_REQUEST;
+			// std::cout << "Ok 1" << endl;
 			break;
-
 		case SEND_REQUEST:
-			address->write(4*readElements.size());
-			request->write(true);
-			state = WAIT_RESPONSE;
+			//Envoyer l’adresse à être lue
+			this->address->write(4*tab_a_trier.size());
+			//Envoyer une requête
+			this->request->write(true);
+			State = WAIT_RESPONSE;
+			// std::cout << "Ok 2" << endl;
 			break;
-
 		case WAIT_RESPONSE:
-			if (ack.read())
-				state = READ_DATA;
+			if (this->ack.read())
+				State = READ_DATA;
 			else
-				state = WAIT_RESPONSE;
+				State = WAIT_RESPONSE;
 			break;
-
 		case READ_DATA:
-			readElements.push_back(data->read());
-			state = REMOVE_REQUEST;
+			this->data->read();
+			this->tab_a_trier.push_back(this->data);
+			State = REMOVE_REQUEST;
 			break;
-
 		case REMOVE_REQUEST:
-			request->write(false);
-			if (readElements.size()-1 == readElements[0]) {
-				state = BUBBLESORT;
-				// Affichage avant tri
-				std::cout << "Avant le tri" << std::endl;
-				for(unsigned int k = 0; k < readElements[0]; k++) {
-					std::cout << readElements[k+1] << std::endl;
-				}
+			this->request.write(false);
+			if ((tab_a_trier.size() - 1) == tab_a_trier[0]) {
+				State = BUBBLE_SORT;
+				std::cout << "Nombre d'éléments à trier : " << tab_a_trier[0] << std::endl;
+				std::cout << "Avant le tri :" << std::endl;
+				for (int k = 1; (unsigned int) k < tab_a_trier[0] + 1; k++)
+					std::cout << tab_a_trier[k] << std::endl;
 			}
 			else
-				state = SEND_REQUEST;
+				State = SEND_REQUEST;
 			break;
+		case BUBBLE_SORT: {
+			if((i != 1) or (j != 1))
+				cout << "Bubble end " << sc_time_stamp() << endl ;
+			
+			cout << endl << "Bubble Begin " << sc_time_stamp() << endl ;
+			if (tab_a_trier[j] > tab_a_trier[j + 1]) {
+                int temp = tab_a_trier[j];
+				tab_a_trier[j] = tab_a_trier[j+1];
+				tab_a_trier[j+1] = temp;
+                swapped = true;
+			}
 
-		case BUBBLESORT:
-			std::cout << std::endl << "Bubble Begin " << sc_time_stamp() << std::endl ;
-			if (i == readElements[0]) {
-				// Affichage après tri
-				std::cout << "Après le tri" << std::endl;
-				for(unsigned int k = 0; k < readElements[0]; k++) {
-					std::cout << readElements[k+1] << std::endl;
-				}
+			if((unsigned int) i == this->tab_a_trier[0]) {
+				std::cout << "Après le tri :" << std::endl;
+				for (int k = 1; (unsigned int) k < tab_a_trier[0] + 1; k++)
+					std::cout << tab_a_trier[k] << std::endl;
 				sc_stop();
 			}
-			if (j < readElements[0] - i){
-				if (readElements[j] > readElements[j + 1]) {
-					int temp = readElements[j];
-					readElements[j] = readElements[j + 1];
-					readElements[j + 1] = temp;
-					swapped = true;
-				}
-				j++;
-			}
 			else {
-				if (swapped == false) {
-					// Affichage après tri
-					std::cout << "Après le tri" << std::endl;
-					for(unsigned int k = 0; k < readElements[0]; k++) {
-						std::cout << readElements[k+1] << std::endl;
+				if((unsigned int) j == tab_a_trier[0] - i) {
+					if (swapped == false) {
+						std::cout << "Après le tri :" << std::endl;
+						for (int k = 1; (unsigned int) k < tab_a_trier[0] + 1; k++)
+							std::cout << tab_a_trier[k] << std::endl;
+            			sc_stop();
 					}
-					sc_stop();
+					i++;
+					j = 1;
+					swapped = false;
 				}
-				i++;
-				j = 1;
-				swapped = false;
+				else
+					j++;
 			}
-			std::cout << "Bubble end " << sc_time_stamp() << std::endl ;
-
-		default:
-			break;
+		}
 	}
 }
