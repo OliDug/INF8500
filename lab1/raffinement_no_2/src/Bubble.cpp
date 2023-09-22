@@ -15,14 +15,9 @@
 Bubble::Bubble( sc_module_name zName )
 : sc_module(zName)
 {
-	/*
-	
-	À compléter
-	
-	*/
-	SC_METHOD(bubble);
-	this->State = INIT;
-	sensitive << clk.pos();
+	SC_METHOD(bubble);		//Nous n'avons plus besoin des wait
+	this->State = INIT;		//Etat initial
+	sensitive << clk.pos();	//Sensibilité sur l'horloge
 }
 
 
@@ -43,43 +38,46 @@ Bubble::~Bubble()
 ///////////////////////////////////////////////////////////////////////////////
 void Bubble::bubble(void)
 {
-	/*
-	
-	À compléter
-	
-	*/
 	//Tiré de https://www.geeksforgeeks.org/bubble-sort/
 	switch(this->State) {
-		case INIT: //Initialisation
+		//Initialisation
+		case INIT:
 			this->address->write(0);
 			this->request->write(false);
 			State = SEND_REQUEST;
-			// std::cout << "Ok 1" << endl;
 			break;
+
+		//Envoi de la requête
 		case SEND_REQUEST:
 			//Envoyer l’adresse à être lue
 			this->address->write(4*tab_a_trier.size());
 			//Envoyer une requête
 			this->request->write(true);
 			State = WAIT_RESPONSE;
-			// std::cout << "Ok 2" << endl;
 			break;
+
+		//Attente acknoledgement
 		case WAIT_RESPONSE:
 			if (this->ack.read())
 				State = READ_DATA;
 			else
 				State = WAIT_RESPONSE;
 			break;
+
+		//Lecture donnée
 		case READ_DATA:
 			this->data->read();
 			this->tab_a_trier.push_back(this->data);
 			State = REMOVE_REQUEST;
 			break;
+
+		//La requête est retirée
 		case REMOVE_REQUEST:
 			this->request.write(false);
 			if ((tab_a_trier.size() - 1) == tab_a_trier[0]) {
 				State = BUBBLE_SORT;
 				std::cout << "Nombre d'éléments à trier : " << tab_a_trier[0] << std::endl;
+				//Affichage avant tri
 				std::cout << "Avant le tri :" << std::endl;
 				for (int k = 1; (unsigned int) k < tab_a_trier[0] + 1; k++)
 					std::cout << tab_a_trier[k] << std::endl;
@@ -87,12 +85,15 @@ void Bubble::bubble(void)
 			else
 				State = SEND_REQUEST;
 			break;
+
+		//Tri
+		//Source: https://www.geeksforgeeks.org/bubble-sort/
 		case BUBBLE_SORT: {
 			if((i != 1) or (j != 1))
 				cout << "Bubble end " << sc_time_stamp() << endl ;
 			
 			cout << endl << "Bubble Begin " << sc_time_stamp() << endl ;
-			if (tab_a_trier[j] > tab_a_trier[j + 1]) {
+			if (tab_a_trier[j] > tab_a_trier[j + 1]) { //Echange de deux éléments s'ils sont dans l'ordre décroissant
                 int temp = tab_a_trier[j];
 				tab_a_trier[j] = tab_a_trier[j+1];
 				tab_a_trier[j+1] = temp;

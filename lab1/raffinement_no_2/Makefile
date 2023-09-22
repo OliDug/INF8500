@@ -1,6 +1,6 @@
-PROJETINC	=	'/home/oldug/systemc/include'
+PROJETINC	=	'/home/athenais/systemc/include'
 ### Remplacer la valeur de PROJECTINC par votre <install_path>/include.
-PROJETLIB	=	'/home/oldug/systemc/lib'
+PROJETLIB	=	'/home/athenais/systemc/lib'
 ### Remplacer la valeur de PROJETLIB par votre <install_path>/lib.
 
 

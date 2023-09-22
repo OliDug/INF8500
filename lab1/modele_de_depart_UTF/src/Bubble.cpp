@@ -14,7 +14,7 @@
 Bubble::Bubble( sc_module_name zName )
 : sc_module(zName)
 {
-	SC_THREAD(interface);
+	SC_THREAD(interface); // Pour utiliser des wait
 }
 
 
@@ -39,7 +39,7 @@ void Bubble::interface(void)
 	unsigned int nbElements = readPort->Read(0);
 
 	// Lecture des éléments à trier
-	unsigned int* elementsToSort = new unsigned int(nbElements);
+	unsigned int* elementsToSort = new unsigned int(nbElements); //Les éléments sont stockés dans un tableau
 	for(unsigned int i = 0; i < nbElements; i++) {
 		elementsToSort[i] = readPort->Read(4 + 4*i);
 	}
@@ -72,7 +72,7 @@ void Bubble::bubbleSort(unsigned int *ptr, int counter)
     for (int i = 0; i < counter - 1; i++) {
         swapped = false;
         for (int j = 0; j < counter - i - 1; j++) {
-            if (ptr[j] > ptr[j + 1]) {
+            if (ptr[j] > ptr[j + 1]) { //Echange de deux éléments s'ils sont dans l'ordre décroissant
 				int temp = ptr[j];
     			ptr[j] = ptr[j + 1];
     			ptr[j + 1] = temp;
