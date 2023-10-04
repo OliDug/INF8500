@@ -42,7 +42,7 @@ void wrapper_console_TLM::b_transport( transaction_type& trans, sc_time& delay )
 	unsigned int     len = trans.get_data_length();
 	unsigned char*   byt = trans.get_byte_enable_ptr();
 	unsigned int     wid = trans.get_streaming_width();
-	sc_time dly = sc_time(30, SC_NS);
+	sc_time dly = sc_time(45, SC_NS);
 	
 	//Vérification 
 	if (byt != 0 || wid < len)

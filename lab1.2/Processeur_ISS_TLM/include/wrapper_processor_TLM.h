@@ -35,7 +35,8 @@ public:
 	tlm_utils::simple_initiator_socket<wrapper_processor_TLM> socket;
 
 	tlm_utils::tlm_quantumkeeper qk;
-
+	sc_time current_delay;
+	
  	// Constructeur
 	wrapper_processor_TLM(sc_module_name zName, bool bVerbose = false);
 	

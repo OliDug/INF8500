@@ -23,6 +23,7 @@ wrapper_processor_TLM::wrapper_processor_TLM(sc_module_name zName, bool bVerbose
 
 	qk.set_global_quantum(sc_time(2000, SC_NS));
     qk.reset();
+	current_delay = sc_time(0, SC_NS);
 }
 
 
@@ -48,9 +49,9 @@ void wrapper_processor_TLM::thread()
 	unsigned long ulDestinationAddress;
 	unsigned int ulData;
 
-	sc_time tLOCAL(sc_core::SC_ZERO_TIME);
-	tLOCAL = qk.get_local_time();
-	qk.set(tLOCAL);
+	//sc_time tLOCAL(sc_core::SC_ZERO_TIME);
+	//tLOCAL = qk.get_local_time();
+	//qk.set(tLOCAL);
 	
 	// Boucle
 	while(1)
@@ -91,10 +92,12 @@ void wrapper_processor_TLM::thread()
 			//Écriture vers le processeur
 			Wrapper_Data_OutPort.write(ulData);
 		}
+		qk.set(current_delay);
 		if (qk.need_sync())
 		{
 			qk.sync();
 			std::cout << "je synchonise: " << sc_time_stamp() << std::endl;
+			current_delay = sc_time(0, SC_NS);
 		}
 	}
 	
@@ -110,7 +113,6 @@ bool wrapper_processor_TLM::busLT_write(unsigned long ulAddress,  void* ptrData,
 {
 	tlm::tlm_command cmd = tlm::TLM_WRITE_COMMAND;
 	tlm::tlm_generic_payload* trans = new tlm::tlm_generic_payload;
-	sc_time delay = sc_time(40, SC_NS);
 	
 	// Création Requête
 	trans->set_command( cmd );
@@ -128,7 +130,7 @@ bool wrapper_processor_TLM::busLT_write(unsigned long ulAddress,  void* ptrData,
 
 				std::cout  << "Wrapper_Processor Write Timestamp : " << sc_time_stamp() << std::endl;
 				trans->set_data_ptr( reinterpret_cast<unsigned char*>((char*)(ptrData) + i) );
-				socket->b_transport( *trans, delay );
+				socket->b_transport( *trans, current_delay );
 				
 				// Initatior verifie la réponse
 				if ( trans->is_response_error() )
@@ -136,13 +138,12 @@ bool wrapper_processor_TLM::busLT_write(unsigned long ulAddress,  void* ptrData,
 					SC_REPORT_ERROR("TLM-2", "Response error from b_transport");
 					return false;
 				}
-      			qk.inc(sc_time(20, SC_NS));
 			}
 		}
 		else
 		{
 			std::cout  << "Wrapper_Processor Write Timestamp : " << sc_time_stamp() << std::endl;trans->set_data_ptr( reinterpret_cast<unsigned char*>(ptrData) );
-			socket->b_transport( *trans, delay ); 
+			socket->b_transport( *trans, current_delay ); 
 			
 			// Initatior verifie la réponse			
 			if ( trans->is_response_error() )
@@ -150,7 +151,6 @@ bool wrapper_processor_TLM::busLT_write(unsigned long ulAddress,  void* ptrData,
 				SC_REPORT_ERROR("TLM-2", "Response error from b_transport");
 				return false;
 			}
-			qk.inc(sc_time(20, SC_NS));
 		}
 		
 	return true;
@@ -166,7 +166,6 @@ bool wrapper_processor_TLM::busLT_read(unsigned long ulAddress,  void* ptrData, 
   	
     command_type cmd = tlm::TLM_READ_COMMAND;
 	transaction_type* trans = new transaction_type;
-	sc_time delay = sc_time(40, SC_NS);
 
 	std::cout  << "Wrapper_Processor Read Timestamp : " << sc_time_stamp() << std::endl;
 	
@@ -182,7 +181,7 @@ bool wrapper_processor_TLM::busLT_read(unsigned long ulAddress,  void* ptrData, 
 
 	//Appelle bloquante
 	std::cout << "Wrapper_Processor Read Timestamp : " << sc_time_stamp() << std::endl;
-	socket->b_transport( *trans, delay );  
+	socket->b_transport( *trans, current_delay );  
 
 	// Initatior verifie la réponse
 	if ( trans->is_response_error() )
@@ -191,7 +190,5 @@ bool wrapper_processor_TLM::busLT_read(unsigned long ulAddress,  void* ptrData, 
 		return false;
 	}
 
-	// Delai estimé pour que la trasanction avec le coprocesseur soit réalisée (2*20)
-	qk.inc(sc_time(40, SC_NS));
 	return true;
 }
